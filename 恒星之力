@@ -1,0 +1,110 @@
+ArrayList<Particle> particles;
+BigBall bigBall;
+
+void setup() {
+  size(800, 600);
+  particles = new ArrayList<Particle>();
+
+  for (int i = 0; i < 100; i++) {
+    particles.add(new Particle(random(width), random(height), random(5, 15)));
+  }
+
+  bigBall = new BigBall(width / 2, height / 2, 30);
+}
+
+void draw() {
+  background(255);
+
+  bigBall.update(mouseX, mouseY);
+  bigBall.display();
+  
+  PVector bigBallPos = new PVector(bigBall.x, bigBall.y);
+  for (Particle p : particles) {
+    PVector attraction = PVector.sub(bigBallPos, new PVector(p.x, p.y));
+    float distance = attraction.mag();
+    
+    if (distance < bigBall.radius + p.particleSize / 2) {
+      attraction.setMag(0.5);
+      p.applyForce(attraction);
+    }
+
+    float strength = 20; 
+    attraction.setMag(strength / distance);
+    p.applyForce(attraction);
+  }
+
+  for (Particle p : particles) {
+    p.update();
+    p.display();
+  }
+}
+
+class Particle {
+  float x, y;
+  PVector velocity;
+  float particleSize;
+  color particleColor; 
+
+  Particle(float x, float y, float particleSize) {
+    this.x = x;
+    this.y = y;
+    this.particleSize = particleSize;
+    velocity = new PVector(0, 0);
+    this.particleColor = color(random(255), random(255), random(255));
+  }
+
+  void applyForce(PVector force) {
+    velocity.add(force);
+  }
+
+  void update() {
+    x += velocity.x;
+    y += velocity.y;
+
+    if (x < 0 || x > width) {
+      velocity.x *= -1;
+    }
+    if (y < 0 || y > height) {
+      velocity.y *= -1;
+    }
+  }
+
+  void display() {
+    fill(particleColor);
+    ellipse(x, y, particleSize, particleSize);
+  }
+}
+
+class BigBall {
+  float x, y;
+  float radius;
+  PVector velocity;
+
+  BigBall(float x, float y, float radius) {
+    this.x = x;
+    this.y = y;
+    this.radius = radius;
+    velocity = new PVector(2, 2);
+  }
+
+  void update(float targetX, float targetY) {
+    float speed = 0.1; 
+    PVector target = new PVector(targetX, targetY);
+    PVector direction = PVector.sub(target, new PVector(x, y));
+    direction.mult(speed);
+    x += direction.x;
+    y += direction.y;
+
+    if (x < 0 || x > width) {
+      velocity.x *= -1;
+    }
+    if (y < 0 || y > height) {
+      velocity.y *= -1;
+    }
+  }
+
+  void display() {
+    fill(255, 0, 0);
+    ellipse(x, y, radius * 2, radius * 2);
+  }
+}
